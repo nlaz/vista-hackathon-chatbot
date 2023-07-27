@@ -6,3 +6,7 @@ body {
 .border-ai-purple {
 	border-color: #5159E4;
 }
+
+.bg-ai-purple {
+	background: linear-gradient(180deg, #5159E4 0%, #323DF1 100%);
+}
