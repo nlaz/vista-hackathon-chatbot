@@ -133,7 +133,7 @@ const ChatBox = () => {
             value={query}
           />
           <div className="text-sm text-center mt-[8px] text-slate-400">
-            This AI may produce inaccurate information about products, people,
+            DriftAI may produce inaccurate information about products, people,
             places, or facts.
           </div>
         </form>

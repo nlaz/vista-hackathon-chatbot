@@ -3,6 +3,13 @@ import Image from "next/image"
 
 const URL = "https://www.vistaequitypartners.com/"
 
+const SUGGESTIONS = [
+  "What is Vista Equity Partners?",
+  "What is the success rate of Vista Equity Partners?",
+  "How does Vista invest?",
+  "What is the Vista Equity Partners portfolio?",
+]
+
 const Widget = ({ onClick }) => {
   return (
     <div
@@ -75,6 +82,9 @@ const MessageHistory = (props) => {
 
       <div className="relative h-[2px]">
         <ShadowOverlay />
+      </div>
+      <div className="text-xs text-center mb-[8px] text-gray-500">
+        DriftAI may produce inaccurate information about products or websites.
       </div>
       <form onSubmit={onSubmit}>
         <input
@@ -151,7 +161,21 @@ const ChatBox = (props) => {
             placeholder="Ask a question or search..."
             className="w-full h-[45px] py-2 text-lg resize-none bg-transparent border-x-0 border-t-0 border-gray-700 outline-none border placeholder:text-gray-500"
             onChange={(e) => setQuery(e.target.value)}
+            value={query}
           />
+          <div className="text-gray-400 text-sm mb-2 mt-7">Suggestions</div>
+          {SUGGESTIONS.map((question) => (
+            <div
+              className="flex cursor-pointer text-gray-300 flex items-center py-2"
+              onClick={() => {
+                setQuery(question)
+                onGenerate(question)
+              }}
+            >
+              <Image src="/sparkles.svg" width={18} height={18} />
+              <div className="ml-3">{question}</div>
+            </div>
+          ))}
         </form>
       )}
     </div>
