@@ -4,23 +4,33 @@ import Image from "next/image"
 import Navigation from "../components/Navigation"
 import { fetchSets } from "../api"
 
+const baseurl1 = "https://www.pinecone.io"
+const baseurl2 = "https://www.datadoghq.com"
+
 const Document = (props) => {
   const { document } = props
+
+  const openInNewTab = () => {
+    const win = window.open(document.url, "_blank")
+    win.focus()
+  }
+
   return (
-    <div className="w-1/5 pr-6">
-      <div className="aspect-[5/6] relative border bg-slate-100 rounded-md p-4 my-4 flex flex-col-reverse">
-        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
-          <div className="mb-3">
-            <Image
-              src={document.img ? document.img : "/file-text.svg"}
-              width={256}
-              height={210}
-              className="border border-red-500"
-            />
-          </div>
+    <div className="w-1/4 pr-6">
+      <div className="my-4">
+        <div
+          className="aspect-[6/5] relative border bg-slate-100 rounded-md flex flex-col-reverse cursor-pointer"
+          onClick={openInNewTab}
+        >
+          <Image
+            src={document.img ? document.img : "/file-text.svg"}
+            layout="fill"
+            className="border border-red-500"
+            objectFit="cover"
+          />
         </div>
-        <div className="font-mono text-slate-400 text-xs whitespace-normal break-words">
-          {document.url}
+        <div className="font-mono text-slate-400 text-xs whitespace-normal break-words mt-2">
+          {document.url.replace(baseurl1, "").replace(baseurl2, "")}
         </div>
       </div>
     </div>
@@ -71,7 +81,7 @@ const DocumentList = ({ sets }) => {
                   onClick={() => setSelectedSet(set)}
                 >
                   <ul className="flex hover:bg-slate-50 border rounded-xl px-12 py-8">
-                    {set.documents.slice(0, 5).map((document, docIndex) => (
+                    {set.documents.slice(0, 4).map((document, docIndex) => (
                       <Document key={docIndex} document={document} />
                     ))}
                   </ul>

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
+import nl2br from "react-newline-to-break"
 
 const URL = "https://www.vistaequitypartners.com/"
+const SET_ID = 1
 
 const SUGGESTIONS = [
   "What is Vista Equity Partners?",
@@ -23,6 +25,12 @@ const Widget = ({ onClick }) => {
 
 const Message = (props) => {
   const { message } = props
+
+  const openInNewTab = (url) => {
+    const win = window.open(url, "_blank")
+    win.focus()
+  }
+
   return (
     <div className="flex mb-4 text-gray-300">
       {message.author === "bot" && (
@@ -35,7 +43,18 @@ const Message = (props) => {
           <Image src="/user.svg" width={22} height={22} />
         </div>
       )}
-      <div className="ml-3 flex w-full">{message.value}</div>
+      <div className="ml-3 w-full">
+        {nl2br(message.value)}
+        {message.sources?.map((s, i) => (
+          <span
+            key={i}
+            className="cursor-pointer text-blue-700 mt-2 text-xs mr-1 hover:text-blue-900"
+            onClick={() => openInNewTab(s)}
+          >
+            [{i}]
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
@@ -98,6 +117,8 @@ const MessageHistory = (props) => {
   )
 }
 
+const unique = (arr) => [...new Set(arr)]
+
 const ChatBox = (props) => {
   const { onClose } = props
   const [query, setQuery] = useState("")
@@ -129,13 +150,14 @@ const ChatBox = (props) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, set_id: SET_ID }),
       })
       const data = await response.json()
       const newMessage = {
         author: "bot",
-        value: data.result.trim(),
+        value: data.result?.chat_response?.trim(),
         date: new Date(),
+        sources: unique(data.result?.sources),
       }
       setMessages((prev) => [...prev, newMessage])
     } catch (e) {

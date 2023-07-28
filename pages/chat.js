@@ -1,9 +1,17 @@
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Navigation from "../components/Navigation"
+import { fetchSets } from "../api"
+import nl2br from "react-newline-to-break"
 
 const Message = (props) => {
   const { message } = props
+
+  const openInNewTab = (url) => {
+    const win = window.open(url, "_blank")
+    win.focus()
+  }
+
   return (
     <div
       className={`flex justify-center border-b py-8 ${
@@ -21,7 +29,18 @@ const Message = (props) => {
             <Image src="/user.svg" width={30} height={30} />
           </div>
         )}
-        <div className="ml-5 flex w-full mt-1">{message.value}</div>
+        <div className="ml-5 w-full mt-1">
+          {nl2br(message.value)}
+          {message.sources?.map((s, i) => (
+            <span
+              key={i}
+              className="cursor-pointer text-blue-700 mt-[6px] mr-1 hover:text-blue-900"
+              onClick={() => openInNewTab(s)}
+            >
+              [{i}]
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -40,7 +59,7 @@ const MessageHistory = (props) => {
   }, [messages])
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 overflow-auto">
       {messages.length > 0 && (
         <div className="flex-1 flex-col overflow-auto relative pb-4">
           {messages.map((message) => (
@@ -62,35 +81,55 @@ const MessageHistory = (props) => {
 }
 
 const ChatHeader = (props) => {
-  const { showSetTypeInput } = props
+  const { showSetTypeInput, sets, onChange, activeSetId } = props
 
   return (
     <div className="border-b py-6">
       <div className="flex items-center justify-center">
-        <div className="w-[240px]">
-          <div className="mb-1 text-xs text-slate-400 text-center">
-            Choose a model
+        {!showSetTypeInput && (
+          <div className="flex items-center text-sm text-slate-800">
+            <Image src="/sparkles.svg" width={14} height={14} />
+            <span className="ml-1">Context: Set - {activeSetId}</span>
           </div>
-          <select className="w-[240px] border border-slate-300 px-3 py-[4px] rounded-md outline-0">
-            <option>Set 1</option>
-          </select>
-        </div>
+        )}
+        {showSetTypeInput && (
+          <div className="w-[240px]">
+            <div className="mb-1 text-xs text-slate-400 text-center">
+              Choose a context
+            </div>
+            <select
+              onChange={(event) => onChange(event.target.value)}
+              className="w-[240px] border border-slate-300 px-3 py-[4px] rounded-md outline-0"
+            >
+              {sets.map((set) => (
+                <option key={set.set_id} value={set.set_id}>
+                  Set - {set.set_id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-const ChatBox = () => {
+const unique = (arr) => [...new Set(arr)]
+
+const ChatBox = ({ sets }) => {
   const [query, setQuery] = useState("")
   const [messages, setMessages] = useState([])
+  const [setId, setSetId] = useState(sets[0]?.set_id)
 
-  const showSetTypeInput = messages.length > 0
+  const showSetTypeInput = messages.length === 0
 
   const onSubmit = (event) => {
     event.preventDefault()
     onGenerate(query)
     setQuery("")
   }
+
+  const onChangeSet = (set) => setSetId(set)
 
   async function onGenerate(query) {
     const newMessage = {
@@ -106,13 +145,18 @@ const ChatBox = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({
+          messages: newMessages,
+          set_id: setId,
+          is_confident: true,
+        }),
       })
       const data = await response.json()
       const newMessage = {
         author: "bot",
-        value: data.result.trim(),
+        value: data.result?.chat_response?.trim(),
         date: new Date(),
+        sources: unique(data.result?.sources),
       }
       setMessages((prev) => [...prev, newMessage])
     } catch (e) {
@@ -122,7 +166,12 @@ const ChatBox = () => {
 
   return (
     <div className="flex w-screen justify-center h-screen flex flex-col bg-white">
-      <ChatHeader showSetTypeInput={showSetTypeInput} />
+      <ChatHeader
+        showSetTypeInput={showSetTypeInput}
+        sets={sets}
+        onChange={onChangeSet}
+        activeSetId={setId}
+      />
       <MessageHistory onBack={() => setMessages([])} messages={messages} />
       <div className="flex justify-center p-6 pt-8 bg-white">
         <form onSubmit={onSubmit} className="max-w-2xl w-full">
@@ -142,11 +191,20 @@ const ChatBox = () => {
   )
 }
 
-export default function ChatPage({ documentSets }) {
+export default function ChatPage({ sets }) {
+  console.log("sets", sets)
   return (
     <div className="flex">
       <Navigation />
-      <ChatBox />
+      <ChatBox sets={sets} />
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  const sets = await fetchSets()
+
+  return {
+    props: { sets: sets || [] },
+  }
 }

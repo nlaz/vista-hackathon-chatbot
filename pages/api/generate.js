@@ -16,8 +16,8 @@ const makeOpenAIRequest = async (prompt) => {
   return completion.data.choices[0].text
 }
 
-const makeAPIRequest = async (prompt) => {
-  const data = JSON.stringify({ messages: prompt })
+const makeAPIRequest = async (messages, set_id, is_confident = false) => {
+  const data = JSON.stringify({ messages, set_id, top_k: 10, is_confident })
   console.log("data", data)
   const response = await fetch("http://0.0.0.0:8080/v0/chat", {
     method: "POST",
@@ -27,11 +27,11 @@ const makeAPIRequest = async (prompt) => {
     },
   }).then((res) => res.json())
   console.log(response)
-  return response.chat_response
+  return response
 }
 
 export default async function (req, res) {
-  const { messages } = req.body
-  const result = await makeAPIRequest(messages)
+  const { messages, set_id, is_confident } = req.body
+  const result = await makeAPIRequest(messages, set_id, is_confident)
   res.status(200).json({ result })
 }
