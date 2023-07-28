@@ -105,6 +105,20 @@ const DocumentList = (props) => {
     })
   }
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedSet(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [])
+
   return (
     <div className="w-full flex bg-white h-screen overflow-auto">
       <div className="w-full border-width-4 flex flex-col">
@@ -152,7 +166,7 @@ const DocumentList = (props) => {
                   <ul className="hover:bg-slate-50 border rounded-xl px-12 py-8">
                     <div className="flex items-center w-full justify-between">
                       <div className="text-slate-500">
-                        {set.title || `Set - ${index + 1}`}
+                        {set.title || `Set - ${set.set_id}`}
                       </div>
                       <div className="text-slate-500 text-sm">
                         {set.documents.length} documents
@@ -173,13 +187,19 @@ const DocumentList = (props) => {
               ))}
             {selectedSet && (
               <div className="pb-20">
-                <div
-                  className="text-sm text-slate-500 flex items-center cursor-pointer mb-3"
-                  onClick={() => setSelectedSet(null)}
-                >
-                  <Image src="/arrow-left.svg" width={16} height={16} />
-                  <span className="ml-1">Back</span>
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <div className="text-black text-xl font-bold">
+                      {selectedSet.title?.length > 0
+                        ? selectedSet.title
+                        : `Set - ${selectedSet.set_id}`}
+                    </div>
+                  </div>
+                  <div className="text-slate-500 text-sm">
+                    {selectedSet.documents.length} documents
+                  </div>
                 </div>
+
                 <div className="grid grid-cols-4 gap-6 rounded-xl">
                   {selectedSet.documents.map((document, docIndex) => (
                     <Document
