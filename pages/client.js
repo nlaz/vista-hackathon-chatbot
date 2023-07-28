@@ -1,24 +1,79 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import nl2br from "react-newline-to-break"
+import { useRouter } from "next/router"
 
 const URL = "https://www.vistaequitypartners.com/"
-const SET_ID = 1
 
-const SUGGESTIONS = [
-  "What is Vista Equity Partners?",
-  "What is the success rate of Vista Equity Partners?",
-  "How does Vista invest?",
-  "What is the Vista Equity Partners portfolio?",
-]
+const SAMPLES = {
+  A: {
+    setId: 1,
+    url: "https://www.pinecone.io/",
+    suggestions: [
+      "What are the safety measures for Pinecone?",
+      "What is the Pinecone pricing model?",
+      "How does Pinecone work?",
+      "What is the Pinecone roadmap?",
+    ],
+  },
+  B: {
+    setId: 2,
+    url: "https://www.datadoghq.com/",
+    suggestions: [
+      "Who are the competitors of Datadog?",
+      "What is the Datadog pricing model?",
+      "What are the features of Datadog?",
+      "What are the rate limits of Datadog?",
+    ],
+  },
+  C: {
+    setId: 2,
+    url: "https://www.vistaequitypartners.com/",
+    suggestions: [
+      "What is Vista Equity Partners?",
+      "What is the success rate of Vista Equity Partners?",
+      "How does Vista invest?",
+      "What is the Vista Equity Partners portfolio?",
+    ],
+  },
+  D: {
+    setId: 2,
+    url: "https://www.rocketlabusa.com/",
+    suggestions: [
+      "Where is Rocket Lab located?",
+      "When is the next Rocket Lab launch?",
+      "What are the most recent solutions ?",
+      "Where are the Rocket Lab launch sites?",
+      "What is the Rocket Lab pricing model?",
+    ],
+  },
+  E: {
+    setId: 2,
+    url: "https://www.nba.com/",
+    suggestions: [
+      "Who are the NBA teams?",
+      "What is the NBA 2023 schedule?",
+      "What was the NBA 2022 schedule?",
+    ],
+  },
+  F: {
+    setId: 2,
+    url: "https://www.nhl.com/",
+    suggestions: [
+      "Who are the NHL teams?",
+      "What is the NHL 2023 schedule?",
+      "What was the NHL 2022 schedule?",
+    ],
+  },
+}
 
 const Widget = ({ onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer absolute w-[54px] h-[54px] flex justify-center items-center rounded-full drop-shadow bg-gray-800 bottom-10 right-10 text-white"
+      className="cursor-pointer absolute w-[54px] h-[54px] flex justify-center items-center rounded-full drop-shadow bg-ai-purple bottom-10 right-10 text-white"
     >
-      <Image src="/sparkles.svg" width={24} height={24} />
+      <Image src="/sparkles-white.svg" width={24} height={24} />
     </div>
   )
 }
@@ -120,7 +175,7 @@ const MessageHistory = (props) => {
 const unique = (arr) => [...new Set(arr)]
 
 const ChatBox = (props) => {
-  const { onClose } = props
+  const { onClose, sample } = props
   const [query, setQuery] = useState("")
   const [messages, setMessages] = useState([])
 
@@ -150,7 +205,7 @@ const ChatBox = (props) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: newMessages, set_id: SET_ID }),
+        body: JSON.stringify({ messages: newMessages, set_id: sample.setId }),
       })
       const data = await response.json()
       const newMessage = {
@@ -186,7 +241,7 @@ const ChatBox = (props) => {
             value={query}
           />
           <div className="text-gray-400 text-sm mb-2 mt-7">Suggestions</div>
-          {SUGGESTIONS.map((question) => (
+          {sample.suggestions.map((question) => (
             <div
               className="flex cursor-pointer text-gray-300 flex items-center py-2"
               onClick={() => {
@@ -206,6 +261,8 @@ const ChatBox = (props) => {
 
 export default function Home() {
   const [showChat, setShowChat] = useState(false)
+  const router = useRouter()
+  const sample = SAMPLES[router.query.sample] || SAMPLES.A
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -227,9 +284,9 @@ export default function Home() {
 
   return (
     <div className="proxima-nova h-screen w-screen relative">
-      <iframe src={URL} className="h-screen w-screen" />
+      <iframe src={sample.url} className="h-screen w-screen" />
       {showChat ? (
-        <ChatBox onClose={() => setShowChat(false)} />
+        <ChatBox onClose={() => setShowChat(false)} sample={sample} />
       ) : (
         <Widget onClick={() => setShowChat(true)} />
       )}
