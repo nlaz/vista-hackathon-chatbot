@@ -12,9 +12,9 @@ const Document = (props) => {
         <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
           <div className="mb-3">
             <Image
-              src="/file-text.svg"
-              width={48}
-              height={48}
+              src={document.img ? document.img : "/file-text.svg"}
+              width={256}
+              height={210}
               className="border border-red-500"
             />
           </div>
