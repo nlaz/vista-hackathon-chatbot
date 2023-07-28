@@ -3,12 +3,35 @@ import Image from "next/image"
 import Navigation from "../components/Navigation"
 import { fetchSets, removeDocument } from "../api"
 
-const baseurl1 = "https://www.pinecone.io"
-const baseurl2 = "https://www.datadoghq.com"
+const baseurl1 = "www.pinecone.io"
+const baseurl2 = "www.datadoghq.com"
+
+const trimHttps = (url) => {
+  const regex = /^(?:https?:\/\/)?/i
+  const newUrl = url.replace(regex, "")
+  return newUrl
+}
+
+const randomString = () => {
+  const chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+  let result = ""
+  for (let i = 8; i > 0; --i)
+    result += chars[Math.floor(Math.random() * chars.length)]
+  return result
+}
+
+const trimUrls = (url, set) => {
+  return trimHttps(url)
+    .replace(set?.url, "")
+    .replace(baseurl1, "")
+    .replace(baseurl2, "")
+}
 
 const Document = (props) => {
-  const { document, onRemove } = props
+  const { document, onRemove, index, set } = props
   const [showRemove, setShowRemove] = useState(false)
+
+  const everyFourth = (index + 1) % 4 === 0
 
   const openInNewTab = () => {
     const win = window.open(document.url, "_blank")
@@ -26,11 +49,10 @@ const Document = (props) => {
 
   return (
     <div
-      className="w-1/4 pr-6"
       onMouseEnter={() => setShowRemove(true)}
       onMouseLeave={() => setShowRemove(false)}
     >
-      <div className="my-4">
+      <div className="mt-3">
         <div
           className="aspect-[6/5] relative border bg-slate-100 rounded-md flex flex-col-reverse cursor-pointer"
           onClick={openInNewTab}
@@ -51,7 +73,7 @@ const Document = (props) => {
           )}
         </div>
         <div className="font-mono text-slate-400 text-xs whitespace-normal break-words mt-2">
-          {document.url.replace(baseurl1, "").replace(baseurl2, "")}
+          {trimUrls(document.url, set)}
         </div>
       </div>
     </div>
@@ -127,22 +149,48 @@ const DocumentList = (props) => {
                   className="mb-6 cursor-pointer"
                   onClick={() => setSelectedSet(set)}
                 >
-                  <ul className="flex hover:bg-slate-50 border rounded-xl px-12 py-8">
-                    {set.documents.slice(0, 4).map((document, docIndex) => (
-                      <Document key={docIndex} document={document} />
-                    ))}
+                  <ul className="hover:bg-slate-50 border rounded-xl px-12 py-8">
+                    <div className="flex items-center w-full justify-between">
+                      <div className="text-slate-500">
+                        {set.title || `Set - ${index + 1}`}
+                      </div>
+                      <div className="text-slate-500 text-sm">
+                        {set.documents.length} documents
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-6">
+                      {set.documents.slice(0, 4).map((document, docIndex) => (
+                        <Document
+                          key={docIndex}
+                          document={document}
+                          index={docIndex}
+                          set={set}
+                        />
+                      ))}
+                    </div>
                   </ul>
                 </div>
               ))}
             {selectedSet && (
-              <div className="flex flex-wrap border rounded-xl px-12 py-8">
-                {selectedSet.documents.map((document, docIndex) => (
-                  <Document
-                    key={docIndex}
-                    document={document}
-                    onRemove={onRemoveDocument}
-                  />
-                ))}
+              <div className="pb-20">
+                <div
+                  className="text-sm text-slate-500 flex items-center cursor-pointer mb-3"
+                  onClick={() => setSelectedSet(null)}
+                >
+                  <Image src="/arrow-left.svg" width={16} height={16} />
+                  <span className="ml-1">Back</span>
+                </div>
+                <div className="grid grid-cols-4 gap-6 rounded-xl">
+                  {selectedSet.documents.map((document, docIndex) => (
+                    <Document
+                      key={docIndex}
+                      document={document}
+                      onRemove={onRemoveDocument}
+                      index={docIndex}
+                      set={selectedSet}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -150,20 +198,6 @@ const DocumentList = (props) => {
       </div>
     </div>
   )
-}
-
-const trimUrl = (url) => {
-  const regex = /^(?:https?:\/\/)?/i
-  const newUrl = url.replace(regex, "")
-  return newUrl
-}
-
-const randomString = () => {
-  const chars = "0123456789abcdefghijklmnopqrstuvwxyz"
-  let result = ""
-  for (let i = 8; i > 0; --i)
-    result += chars[Math.floor(Math.random() * chars.length)]
-  return result
 }
 
 const Modal = (props) => {
@@ -177,7 +211,7 @@ const Modal = (props) => {
     const res = await fetch("http://0.0.0.0:8080/v0/sets/docs/domainUpload", {
       method: "POST",
       body: JSON.stringify({
-        url: trimUrl(url),
+        url: trimHttps(url),
         title,
         set_id: randomString(),
         org_id: 1,
@@ -250,7 +284,7 @@ const Modal = (props) => {
 }
 
 export default function DocumentsPage({ sets }) {
-  const [showModal, setShowModal] = useState(true)
+  const [showModal, setShowModal] = useState(false)
   return (
     <div className="flex bg-white h-screen relative">
       <Navigation />
