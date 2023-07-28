@@ -192,7 +192,6 @@ const ChatBox = ({ sets }) => {
 }
 
 export default function ChatPage({ sets }) {
-  console.log("sets", sets)
   return (
     <div className="flex">
       <Navigation />

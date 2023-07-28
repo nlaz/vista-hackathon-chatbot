@@ -26,7 +26,6 @@ const makeAPIRequest = async (messages, set_id, is_confident = false) => {
       "Content-Type": "application/json",
     },
   }).then((res) => res.json())
-  console.log(response)
   return response
 }
 

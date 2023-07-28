@@ -7,6 +7,18 @@ const URL = "https://www.vistaequitypartners.com/"
 
 const SAMPLES = {
   A: {
+    name: "Datadog",
+    setId: 2,
+    url: "https://www.datadoghq.com/",
+    suggestions: [
+      "What is Datadog?",
+      "Who are the competitors of Datadog?",
+      "What is the Datadog pricing model?",
+      "What are the features of Datadog?",
+      "What are the rate limits of Datadog?",
+    ],
+  },
+  B: {
     setId: 1,
     url: "https://www.pinecone.io/",
     suggestions: [
@@ -14,16 +26,6 @@ const SAMPLES = {
       "What is the Pinecone pricing model?",
       "How does Pinecone work?",
       "What is the Pinecone roadmap?",
-    ],
-  },
-  B: {
-    setId: 2,
-    url: "https://www.datadoghq.com/",
-    suggestions: [
-      "Who are the competitors of Datadog?",
-      "What is the Datadog pricing model?",
-      "What are the features of Datadog?",
-      "What are the rate limits of Datadog?",
     ],
   },
   C: {
@@ -284,7 +286,11 @@ export default function Home() {
 
   return (
     <div className="proxima-nova h-screen w-screen relative">
-      <iframe src={sample.url} className="h-screen w-screen" />
+      {sample?.name === "Datadog" ? (
+        <Image src="/datadog.png" layout={"fill"} objectFit={"contain"} />
+      ) : (
+        <iframe src={sample.url} className="h-screen w-screen" />
+      )}
       {showChat ? (
         <ChatBox onClose={() => setShowChat(false)} sample={sample} />
       ) : (
