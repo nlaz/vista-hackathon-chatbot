@@ -1,206 +1,98 @@
-import { useState, useEffect, useRef } from "react"
+import Link from "next/link"
+import { useState } from "react"
 import Image from "next/image"
+import Navigation from "../components/Navigation"
+import { fetchSets } from "../api"
 
-const URL = "https://www.vistaequitypartners.com/"
-
-const Widget = ({ onClick }) => {
+const Document = (props) => {
+  const { document } = props
   return (
-    <div
-      onClick={onClick}
-      className="cursor-pointer absolute w-[54px] h-[54px] flex justify-center items-center rounded-full drop-shadow bg-gray-800 bottom-10 right-10 text-white"
-    >
-      <Image src="/sparkles.svg" width={24} height={24} />
-    </div>
-  )
-}
-
-const Message = (props) => {
-  const { message } = props
-  return (
-    <div className="flex mb-4 text-gray-300">
-      {message.author === "bot" && (
-        <div className="w-[24px] h-[24px] border border-ai-purple rounded-md flex justify-center items-center">
-          <Image src="/sparkles.svg" width={12} height={12} />
+    <div className="w-1/5 pr-6">
+      <div className="aspect-[5/6] relative border bg-slate-100 rounded-md p-4 my-4 flex flex-col-reverse">
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+          <div className="mb-3">
+            <Image
+              src="/file-text.svg"
+              width={48}
+              height={48}
+              className="border border-red-500"
+            />
+          </div>
         </div>
-      )}
-      {message.author === "user" && (
-        <div className="w-[24px] h-[24px] flex justify-center items-center">
-          <Image src="/user.svg" width={22} height={22} />
+        <div className="font-mono text-slate-400 text-xs whitespace-normal break-words">
+          {document.url}
         </div>
-      )}
-      <div className="ml-3 flex w-full">{message.value}</div>
+      </div>
     </div>
   )
 }
 
-const ShadowOverlay = () => {
+const DocumentList = ({ sets }) => {
+  const [selectedSet, setSelectedSet] = useState()
   return (
-    <div className="absolute w-full h-[40px] bottom-0 bg-gradient-to-t from-gray-800 to-transparent pointer-events-none"></div>
-  )
-}
-
-const MessageHistory = (props) => {
-  const { messages, onBack, onNewMessage } = props
-  const [query, setQuery] = useState("")
-
-  const endOfMessagesRef = useRef(null)
-
-  const onSubmit = (event) => {
-    event.preventDefault()
-    onNewMessage(query)
-    setQuery("")
-  }
-
-  useEffect(() => {
-    if (endOfMessagesRef.current) {
-      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" })
-    }
-  }, [messages])
-
-  return (
-    <div className="flex flex-col h-full">
-      <div
-        onClick={onBack}
-        className="mb-3 text-xs flex items-center cursor-pointer"
-      >
-        <Image src="/arrow-left.svg" width={14} height={14} />
-        <span className="ml-[2px] text-gray-400">Ask a question</span>
+    <div className="w-full flex bg-white h-screen overflow-auto">
+      <div className="w-full">
+        <div className="border-b border-slate-200 bg-slate-100">
+          <div className="mx-48 max-w-6xl w-full py-8 flex items-center">
+            <div>
+              <Image src="/sparkles.svg" width={38} height={38} />
+            </div>
+            <div className="ml-3 flex-1">
+              <h2 className="text-lg font-bold">Chat Documents</h2>
+              <div className="text-gray-500">
+                Upload documents or add links to your knowlege base to train
+                your chat bots.
+              </div>
+            </div>
+            <div>
+              <button className="text-white rounded-lg bg-ai-purple px-3 py-[6px] flex items-center">
+                <Image src="/plus.svg" width={18} height={18} />
+                <span className="ml-1 mr-2">Add Documents</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="mx-48 max-w-6xl	w-full py-10">
+          {!selectedSet &&
+            sets.map((set, index) => (
+              <div
+                key={index}
+                className="mb-6 cursor-pointer"
+                onClick={() => setSelectedSet(set)}
+              >
+                <ul className="flex hover:bg-slate-50 border rounded-xl px-12 py-8">
+                  {set.documents.slice(0, 5).map((document, docIndex) => (
+                    <Document key={docIndex} document={document} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          {selectedSet && (
+            <div className="flex flex-wrap border rounded-xl px-12 py-8">
+              {selectedSet.documents.map((document, docIndex) => (
+                <Document key={docIndex} document={document} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex-1 flex-col overflow-auto relative pb-4">
-        {messages.map((message) => (
-          <Message key={message.date} message={message} />
-        ))}
-        <div ref={endOfMessagesRef} />
-      </div>
-
-      <div className="relative h-[2px]">
-        <ShadowOverlay />
-      </div>
-      <form onSubmit={onSubmit}>
-        <input
-          className="w-full text-sm h-[36px] py-2 px-3 resize-none bg-transparent rounded border-gray-700 outline-none border placeholder:text-gray-500"
-          placeholder="Ask a question or search..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </form>
     </div>
   )
 }
 
-const mockMessages = [
-  {
-    date: new Date(),
-    author: "user",
-    value: "What is the meaning of life?",
-  },
-  {
-    date: new Date(),
-    author: "bot",
-    value: "42",
-  },
-]
-
-const ChatBox = (props) => {
-  const { onClose } = props
-  const [query, setQuery] = useState("")
-  const [response, setResponse] = useState("")
-  // const [messages, setMessages] = useState(mockMessages)
-  const [messages, setMessages] = useState([])
-
-  const showMessageHistory = messages.length > 0
-
-  function onSubmit(event) {
-    event.preventDefault()
-    onGenerate(query)
-    setQuery("")
-  }
-
-  function onMessageSubmit(query) {
-    onGenerate(query)
-  }
-
-  async function onGenerate(query) {
-    const newMessage = {
-      date: new Date(),
-      author: "user",
-      value: query,
-    }
-    setMessages([...messages, newMessage])
-    try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query }),
-      })
-      const data = await response.json()
-      const newMessage = {
-        author: "bot",
-        value: data.result.trim(),
-        date: new Date(),
-      }
-      setMessages((prev) => [...prev, newMessage])
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
+export default function DocumentsPage({ sets }) {
   return (
-    <div className="absolute text-white w-[500px] h-[400px] bg-gray-800 top-1/2 left-1/2 drop-shadow transform -translate-x-1/2 -translate-y-1/2 p-7 rounded">
-      <div className="absolute right-6 top-6 cursor-pointer" onClick={onClose}>
-        <Image src="/close.svg" width={14} height={14} />
-      </div>
-      {showMessageHistory && (
-        <MessageHistory
-          onBack={() => setMessages([])}
-          messages={messages}
-          onNewMessage={onMessageSubmit}
-        />
-      )}
-      {!showMessageHistory && (
-        <form onSubmit={onSubmit}>
-          <input
-            placeholder="Ask a question or search..."
-            className="w-full h-[45px] py-2 text-lg resize-none bg-transparent border-x-0 border-t-0 border-gray-700 outline-none border placeholder:text-gray-500"
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </form>
-      )}
+    <div className="flex bg-white h-screen">
+      <Navigation />
+      <DocumentList sets={sets} />
     </div>
   )
 }
 
-export default function Home() {
-  const [showChat, setShowChat] = useState(true)
+export async function getServerSideProps() {
+  const sets = await fetchSets()
 
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "k" && event.metaKey) {
-        event.preventDefault()
-        setShowChat((prev) => !prev)
-      }
-      if (event.key === "Escape") {
-        setShowChat(false)
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [])
-
-  return (
-    <div className="proxima-nova h-screen w-screen relative">
-      <iframe src={URL} className="h-screen w-screen" />
-      {showChat ? (
-        <ChatBox onClose={() => setShowChat(false)} />
-      ) : (
-        <Widget onClick={() => setShowChat(true)} />
-      )}
-    </div>
-  )
+  return {
+    props: { sets },
+  }
 }

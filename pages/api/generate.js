@@ -6,13 +6,32 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
-export default async function (req, res) {
-  const { query } = req.body
+const makeOpenAIRequest = async (prompt) => {
   const completion = await openai.createCompletion({
     model: "text-davinci-003",
-    prompt: query,
+    prompt: prompt,
     temperature: 0.8,
     max_tokens: 2048,
   })
-  res.status(200).json({ result: completion.data.choices[0].text })
+  return completion.data.choices[0].text
+}
+
+const makeAPIRequest = async (prompt) => {
+  const data = JSON.stringify({ messages: prompt })
+  console.log("data", data)
+  const response = await fetch("http://0.0.0.0:8080/v0/chat", {
+    method: "POST",
+    body: data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((res) => res.json())
+  console.log(response)
+  return response.chat_response
+}
+
+export default async function (req, res) {
+  const { messages } = req.body
+  const result = await makeAPIRequest(messages)
+  res.status(200).json({ result })
 }
