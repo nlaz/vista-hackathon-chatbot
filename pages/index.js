@@ -104,6 +104,6 @@ export async function getServerSideProps() {
   const sets = await fetchSets()
 
   return {
-    props: { sets: [] },
+    props: { sets: sets || [] },
   }
 }
