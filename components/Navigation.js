@@ -3,7 +3,7 @@ import Image from "next/image"
 
 const Navigation = () => {
   return (
-    <div className="w-[48px] fixed drop-shadow-sm bg-white border-r h-screen flex flex-col items-center">
+    <div className="w-[48px] fixed z-10 drop-shadow-sm bg-white border-r h-screen flex flex-col items-center">
       <div className="flex justify-center items-center w-[48px] h-[86px] py-6 bg-ai-purple">
         <Image src="/drift.svg" width={24} height={24} />
       </div>
@@ -13,7 +13,7 @@ const Navigation = () => {
             <Image src="/sparkles.svg" width={24} height={24} />
           </div>
         </Link>
-        <Link href="/docs">
+        <Link href="/">
           <div className="px-3 py-5 hover:bg-slate-100 cursor-pointer">
             <Image src="/document.svg" width={24} height={24} />
           </div>

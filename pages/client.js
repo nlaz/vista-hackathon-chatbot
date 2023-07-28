@@ -88,24 +88,9 @@ const MessageHistory = (props) => {
   )
 }
 
-const mockMessages = [
-  {
-    date: new Date(),
-    author: "user",
-    value: "What is the meaning of life?",
-  },
-  {
-    date: new Date(),
-    author: "bot",
-    value: "42",
-  },
-]
-
 const ChatBox = (props) => {
   const { onClose } = props
   const [query, setQuery] = useState("")
-  const [response, setResponse] = useState("")
-  // const [messages, setMessages] = useState(mockMessages)
   const [messages, setMessages] = useState([])
 
   const showMessageHistory = messages.length > 0
@@ -174,7 +159,7 @@ const ChatBox = (props) => {
 }
 
 export default function Home() {
-  const [showChat, setShowChat] = useState(true)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     const handleKeyDown = (event) => {
